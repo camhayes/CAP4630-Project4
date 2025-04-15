@@ -1,10 +1,12 @@
+import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sklearn.preprocessing import MultiLabelBinarizer
 from collections import Counter
 import pandas as pd
-import nltk
+from warnings import simplefilter
+simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 nltk.download('vader_lexicon')
 
@@ -14,9 +16,12 @@ nltk.download('vader_lexicon')
 ###
 
 def main():
+
+    # TODO: cut these data samples in half
     reviews_df = pd.read_csv("../data/rotten_tomatoes_critic_reviews.csv")
+    reviews_df = reviews_df[:(len(reviews_df) // 2)]
     movies_df = pd.read_csv("../data/rotten_tomatoes_movies.csv")
-    
+
     print("Normalizing genres...")
     movies_df['genre_list'] = movies_df['genres'].fillna("").apply(lambda x: [g.strip() for g in x.split(',')])
     mlb = MultiLabelBinarizer()
@@ -27,6 +32,7 @@ def main():
     movies_df = pd.concat([movies_df, genre_dummies], axis=1)
     movies_df.drop(columns=['genres', 'genre_list'], inplace=True)
 
+    # TODO: Figure out if I can optimize these since there's some DataFrame performance warning stuff going on. Not a big deal if not
     print("Parsing top directors...")
     movies_df['director_list'] = movies_df['directors'].fillna("").apply(lambda x: [a.strip() for a in x.split(',')])
     director_counter = Counter(director for sublist in movies_df['director_list'] for director in sublist)
@@ -63,11 +69,12 @@ def main():
     ###
     sid = SentimentIntensityAnalyzer()
 
-    print("Generating sentiment scores...")    
+    print("Generating sentiment scores... This will take a few minutes")    
     merged_df['sentiment'] = merged_df['review_content'].apply(lambda x: sid.polarity_scores(str(x))['compound'])
 
     # remove unused data 
     print("Dropping unused keys...")
+    # A lot of this data is parsed by this point or isn't relevant to the training model.
     merged_df = merged_df.drop(columns=['tomatometer_rotten_critics_count',
                                         'tomatometer_fresh_critics_count',
                                         'tomatometer_top_critics_count',
@@ -85,10 +92,16 @@ def main():
                                         'streaming_release_date',
                                         'audience_status',
                                         'audience_rating',
-                                        'audience_count'], 
+                                        'audience_count',
+                                        'rotten_tomatoes_link',
+                                        'critic_name',
+                                        'review_type',
+                                        'review_content',
+                                        'movie_title',
+                                        'movie_info'], 
                                         errors='ignore')
     
-    print("Writing data... this may take a few minutes")
+    print("Writing data... This will take a few minutes")
     merged_df.to_csv("../data/processed/critics_movies.csv", index=False)
 
 def clean_score(raw_score):
