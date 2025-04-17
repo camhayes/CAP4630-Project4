@@ -8,13 +8,18 @@ Given a dataset from Rotten Tomatoes containing movie metadata and critic review
 I will preprocess the data, engineer features (including sentiment scores), train and evaluate multiple regression models, and perform a comparative analysis based on model accuracy and feature importance.
 ## Research Questions
 * Is review sentiment a sufficient and accuracte enough measure of a movie critic score?
-* To what extent does review sentiment and film metadata improve predictive performances over metadata alone?
-* To what extent does the designation of Top Critic introduce bias in movie review scoring, and does accounting for that bias improve predictive performance?
+* To what extent does review sentiment and film metadata improve predictive performances?
+* Does training on top critic reviews lead to better prediction performance than training on general critic reviews, or using both?
 ## Tools
 * Python (Pandas, NumPy, Scikit-learn)
 * VADER (for sentiment analysis)
 * Matplotlib (for visualizations)
 
+## Models to Train
+SVR
+Linear Regression
+Random Tree
+xGBoost
 
 TODO: 
 

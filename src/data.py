@@ -17,45 +17,48 @@ nltk.download('vader_lexicon')
 
 def main():
 
-    # TODO: cut these data samples in half
     reviews_df = pd.read_csv("../data/rotten_tomatoes_critic_reviews.csv")
-    reviews_df = reviews_df[:(len(reviews_df) // 2)]
+    reviews_df = reviews_df[:(len(reviews_df) // 500)] # cuts the sample down considerably for now
     movies_df = pd.read_csv("../data/rotten_tomatoes_movies.csv")
 
-    print("Normalizing genres...")
-    movies_df['genre_list'] = movies_df['genres'].fillna("").apply(lambda x: [g.strip() for g in x.split(',')])
-    mlb = MultiLabelBinarizer()
-    genre_dummies = pd.DataFrame(
-        mlb.fit_transform(movies_df['genre_list']),
-        columns=[f"genre_{g}" for g in mlb.classes_]
-    )
-    movies_df = pd.concat([movies_df, genre_dummies], axis=1)
-    movies_df.drop(columns=['genres', 'genre_list'], inplace=True)
+    reviews_df['top_critic'] = reviews_df['top_critic'].replace({True: 1, False: 0})
+
+    # print("Normalizing genres...")
+    # movies_df['genre_list'] = movies_df['genres'].fillna("").apply(lambda x: [g.strip() for g in x.split(',')])
+    # mlb = MultiLabelBinarizer()
+    # genre_dummies = pd.DataFrame(
+    #     mlb.fit_transform(movies_df['genre_list']),
+    #     columns=[f"genre_{g}" for g in mlb.classes_]
+    # )
+    # movies_df = pd.concat([movies_df, genre_dummies], axis=1)
+    # movies_df.drop(columns=['genres', 'genre_list'], inplace=True)
 
     # TODO: Figure out if I can optimize these since there's some DataFrame performance warning stuff going on. Not a big deal if not
-    print("Parsing top directors...")
-    movies_df['director_list'] = movies_df['directors'].fillna("").apply(lambda x: [a.strip() for a in x.split(',')])
-    director_counter = Counter(director for sublist in movies_df['director_list'] for director in sublist)
-    top_directors = [a for a, _ in director_counter.most_common(200)]
-    for director in top_directors:
-        movies_df[f'director_{director}'] = movies_df['director_list'].apply(lambda lst: int(director in lst))
-    movies_df.drop(columns=['directors', 'director_list'], inplace=True)
+    # print("Parsing top directors...")
+    # movies_df['director_list'] = movies_df['directors'].fillna("").apply(lambda x: [a.strip() for a in x.split(',')])
+    # director_counter = Counter(director for sublist in movies_df['director_list'] for director in sublist)
+    # top_directors = [a for a, _ in director_counter.most_common(200)]
+    # for director in top_directors:
+    #     movies_df[f'director_{director}'] = movies_df['director_list'].apply(lambda lst: int(director in lst))
+    # movies_df.drop(columns=['directors', 'director_list'], inplace=True)
 
-    print("Parsing top writers...")
-    movies_df['authors_list'] = movies_df['authors'].fillna("").apply(lambda x: [a.strip() for a in x.split(',')])
-    authors_counter = Counter(author for sublist in movies_df['authors_list'] for author in sublist)
-    top_authors = [a for a, _ in authors_counter.most_common(200)]
-    for author in top_authors:
-        movies_df[f'author_{author}'] = movies_df['authors_list'].apply(lambda lst: int(author in lst))
-    movies_df.drop(columns=['authors', 'authors_list'], inplace=True)
+    # print("Parsing top writers...")
+    # movies_df['authors_list'] = movies_df['authors'].fillna("").apply(lambda x: [a.strip() for a in x.split(',')])
+    # authors_counter = Counter(author for sublist in movies_df['authors_list'] for author in sublist)
+    # top_authors = [a for a, _ in authors_counter.most_common(200)]
+    # for author in top_authors:
+    #     movies_df[f'author_{author}'] = movies_df['authors_list'].apply(lambda lst: int(author in lst))
+    # movies_df.drop(columns=['authors', 'authors_list'], inplace=True)
 
-    print("Parsing top actors...")
-    movies_df['actor_list'] = movies_df['actors'].fillna("").apply(lambda x: [a.strip() for a in x.split(',')])
-    actor_counter = Counter(actor for sublist in movies_df['actor_list'] for actor in sublist)
-    top_actors = [a for a, _ in actor_counter.most_common(500)]
-    for actor in top_actors:
-        movies_df[f'actor_{actor}'] = movies_df['actor_list'].apply(lambda lst: int(actor in lst))
-    movies_df.drop(columns=['actors', 'actor_list'], inplace=True)
+    # print("Parsing top actors...")
+    # movies_df['actor_list'] = movies_df['actors'].fillna("").apply(lambda x: [a.strip() for a in x.split(',')])
+    # actor_counter = Counter(actor for sublist in movies_df['actor_list'] for actor in sublist)
+    # top_actors = [a for a, _ in actor_counter.most_common(500)]
+    # for actor in top_actors:
+    #     movies_df[f'actor_{actor}'] = movies_df['actor_list'].apply(lambda lst: int(actor in lst))
+    # movies_df.drop(columns=['actors', 'actor_list'], inplace=True)
+    
+    
     merged_df = pd.merge(reviews_df, movies_df, on='rotten_tomatoes_link', how='inner')
     
     print("Normalizing critic scores...")
@@ -75,7 +78,12 @@ def main():
     # remove unused data 
     print("Dropping unused keys...")
     # A lot of this data is parsed by this point or isn't relevant to the training model.
-    merged_df = merged_df.drop(columns=['tomatometer_rotten_critics_count',
+    merged_df = merged_df.drop(columns=['genres',
+                                        'directors',
+                                        'actors',
+                                        'authors',
+                                        'runtime',
+                                        'tomatometer_rotten_critics_count',
                                         'tomatometer_fresh_critics_count',
                                         'tomatometer_top_critics_count',
                                         'tomatometer_count',
