@@ -16,18 +16,11 @@ I will preprocess the data, engineer features (including sentiment scores), trai
 * Matplotlib (for visualizations)
 
 ## Models to Train
-SVR
+LightGBM
 Linear Regression
-Random Tree
+Random Forest
+Ridge Regression
 xGBoost
-
-TODO: 
-
-Prepare training and test sets
-
-Implement and evaluate Linear Regression model
-
-Implement and evaluate Random Forest Regressor; analyze feature importances
 
 Compare model performance; visualize results (scatter plots, importances)
 
