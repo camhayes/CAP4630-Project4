@@ -1,7 +1,12 @@
+import nltk
 import pandas as pd
 from warnings import simplefilter
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt
+
+simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
+
+nltk.download('vader_lexicon')
 
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
@@ -15,20 +20,9 @@ def main():
     movie_df  = pd.read_csv("../../data/processed/movie_metadata.csv")
         
     print("Generating sentiment scores... This will take a few minutes")    
-    model_name = "j-hartmann/emotion-english-distilroberta-base"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name)
-    emotion_pipeline = pipeline("text-classification", model=model, tokenizer=tokenizer, return_all_scores=True)
-    unmasker = pipeline('fill-mask', model='distilroberta-base')
-    
-    def get_emotion_scores(x):
-        
-        pipeline_input = x if isinstance(x, str) else str(x)
-        output = emotion_pipeline(pipeline_input)[0]
-        return {entry['label']: entry['score'] for entry in output}
-    
-    movie_df['sentiment'] = movie_df['review_content'].apply(get_emotion_scores)
-    movie_df['sentiment'] = movie_df['sentiment'].apply(lambda x: compute_emotion_weight(x))
+    sid = SentimentIntensityAnalyzer()
+
+    movie_df['sentiment'] = movie_df['review_content'].apply(lambda x: sid.polarity_scores(str(x))['compound'])
 
     movie_df['review_score_clean'] = round((movie_df['review_score_clean'] / 10) * 2 - 1, 2) # normalize the review score so that it's closer to the sentiment value
 
@@ -46,8 +40,9 @@ def main():
     movie_df = movie_df[movie_df['score_diff'] <= threshold]
     movie_df = movie_df.drop(columns=['score_diff'])
     print(len(movie_df))
+
     print("Writing data... This will take a few minutes")
-    movie_df.to_csv("../../data/processed/distilled_roberta.csv", index=False)
+    movie_df.to_csv("../../data/processed/vader.csv", index=False)
 
     plt.scatter(movie_df['review_score_clean'], movie_df['sentiment'], alpha=0.5)
     plt.xlabel('Review Score')
