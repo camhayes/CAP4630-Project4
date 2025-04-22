@@ -20,7 +20,7 @@ def main():
     reviews_df = reviews_df.dropna(subset=['review_content'])
     
     # randomly drop n rows -> sentiment analysis is time consuming
-    n = int(len(reviews_df) // 1.03)
+    n = int(len(reviews_df) // 1.0001)
     drop_indices = np.random.choice(reviews_df.index, n, replace=False)
     reviews_df = reviews_df.drop(drop_indices)
 
@@ -108,7 +108,7 @@ def main():
                                         errors='ignore')
     
     print("Writing data... This will take a few minutes")
-    merged_df.to_csv("../../data/processed/movie_metadata.csv", index=False)
+    merged_df.to_csv("../../data/processed/movie_metadata-mini-test.csv", index=False)
 
 def clean_score(raw_score):
     # Normalize scores since there's a lot of variety in how an individual critic scores a movie. 

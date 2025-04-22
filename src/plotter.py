@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 import numpy as np
 
-df  = pd.read_csv("../data/processed/bert_sst2.csv")
+df  = pd.read_csv("../data/processed/film_bert.csv")
 
 match_rate = np.mean(np.abs(df['sentiment'] - df['review_score_clean']) < .2)  # 10-point margin
 print(match_rate)
